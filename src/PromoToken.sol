@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {ERC20Pausable} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
@@ -184,7 +183,10 @@ contract PromoTokenScaled is ERC20Pausable, AccessControl {
         return _normalizeExpiry(timestamp);
     }
 
-    function _update(address from, address to, uint256 value) internal override(ERC20, ERC20Pausable) {
+    function _update(address from, address to, uint256 value) internal override(ERC20Pausable) {
+        // Fail fast on paused state before doing any bucket bookkeeping.
+        _requireNotPaused();
+
         if (from != address(0) && to != address(0) && value != 0) {
             uint256 available = activeBalanceOf(from);
             if (available < value) {
